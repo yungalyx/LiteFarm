@@ -106,7 +106,6 @@ const dummy = {
     'last_name': 'heavy',
     'first_name': 'farm',
     'email': 'haha@gmail.com',
-    'is_admin': false,
   },
 
   mockShift:{
