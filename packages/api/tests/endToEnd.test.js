@@ -21,6 +21,8 @@ const chai_expect = chai.expect;    // Using Expect style
 const chai_should = chai.should();  // Using Should style
 const server = 'http://localhost:5000';
 const dummy = require('./dummy');
+const dummySignUp = require('./dummySignUp')
+const authConfig = require ('../src/auth0Config')
 
 beforeAll(() => {
   // beforeAll is set before each test
@@ -34,7 +36,144 @@ describe('This is an end to end test for all API calls', () => {
 
   const uid = dummy.mockUser.user_id;
 
-  /**
+  let testSignUpToken = null;
+  let oauth_user_id = null;
+
+  //SIGNUP FLOW
+
+    // post to get token for signup tests
+    test('POST to signup with oauth', (done) => {
+        chai.request(authConfig.token_url).post('/')
+            .set(authConfig.token_headers)
+            .send(authConfig.token_body)
+            .end((err, res) => {
+                chai_expect(res.status).to.equal(200)
+                testSignUpToken = res.body.access_token;
+                done();
+            }
+            )
+        }
+    )
+    // TODO: determine why 404 posting like in createusercontroller
+//post valid signup user
+//     test('POST valid signup user', (done) => {
+//         chai.request(authConfig.user_url).post('/')
+//             .set('content-type', 'application/json')
+//             .set('Authorization', 'Bearer ' + testSignUpToken)
+//             .send(dummy.validSignupUser)
+//             .end((err, res) => {
+//                 // console.log(err)
+//                 console.log(dummy.validSignupUser)
+//                 console.log(res.error)
+//                 // console.log(res)
+//                 chai_expect(res.status).to.equal(201)
+//                 done();
+//             })
+//
+//     })
+
+    test('POST invalid password signup user gives 400', (done) => {
+        chai.request('https://litefarm-dev.auth0.com').post('/dbconnections/signup')
+            .set('content-type', 'application/json')
+            .set('Authorization', 'Bearer ' + testSignUpToken)
+            .send(dummySignUp.passwordInvalidUser)
+            .end((err, res) => {
+                chai_expect(res.error).to.be.not.null
+                chai_expect(res.status).to.equal(400)
+                done();
+            })
+    })
+
+    test('POST blank password signup user gives 400', (done) => {
+        chai.request('https://litefarm-dev.auth0.com').post('/dbconnections/signup')
+            .set('content-type', 'application/json')
+            .set('Authorization', 'Bearer ' + testSignUpToken)
+            .send(dummySignUp.passwordBlankUser)
+            .end((err, res) => {
+                chai_expect(res.error).to.be.not.null
+                chai_expect(res.status).to.equal(400)
+                done();
+            })
+    })
+
+
+    test('POST invalid email signup user gives 400', (done) => {
+        chai.request('https://litefarm-dev.auth0.com').post('/dbconnections/signup')
+            .set('content-type', 'application/json')
+            .set('Authorization', 'Bearer ' + testSignUpToken)
+            .send(dummySignUp.emailInvalidUser)
+            .end((err, res) => {
+                chai_expect(res.error).to.be.not.null
+                chai_expect(res.status).to.equal(400)
+                done();
+            })
+    })
+
+    test('POST blank email signup user gives 400', (done) => {
+        chai.request('https://litefarm-dev.auth0.com').post('/dbconnections/signup')
+            .set('content-type', 'application/json')
+            .set('Authorization', 'Bearer ' + testSignUpToken)
+            .send(dummySignUp.emailBlankUser)
+            .end((err, res) => {
+                chai_expect(res.error).to.be.not.null
+                chai_expect(res.status).to.equal(400)
+                done();
+            })
+    })
+
+
+    //Auth0api
+    test('POST valid signup user', (done) => {
+        chai.request('https://litefarm-dev.auth0.com').post('/dbconnections/signup')
+            .set('content-type', 'application/json')
+            .set('Authorization', 'Bearer ' + testSignUpToken)
+            .send(dummySignUp.validSignupUser)
+            .end((err, res) => {
+                // chai_expect(res.error).to.be.null
+                console.log(res.error)
+                chai_expect(res.status).to.equal(200)
+                done();
+            })
+    })
+
+
+    test('GET user by email from oauth', (done) => {
+        let email = dummySignUp.validSignupUser.email.replace('@', '%40')
+        chai.request(authConfig.token_body.audience).get('users-by-email?email='+ email)
+            .set('content-type', 'application/json')
+            .set('Authorization', 'Bearer ' + testSignUpToken)
+            .end((err, res) => {
+                chai_expect(res.body[0]).to.be.not.null
+                oauth_user_id = res.body[0].user_id
+                chai_expect(res.status).to.equal(200)
+                done();
+            })
+    })
+
+    test('DELETE valid signup user', (done) => {
+        chai.request(authConfig.user_url).delete('/' + oauth_user_id)
+            .set('content-type', 'application/json')
+            .set('Authorization', 'Bearer ' + testSignUpToken)
+            .end((err, res) => {
+                chai_expect(res.status).to.equal(204)
+                done();
+            })
+
+    })
+
+    test('GET user by email from oauth should give ', (done) => {
+        let email = dummy.validSignupUser.email.replace('@', '%40')
+        chai.request(authConfig.token_body.audience).get('users-by-email?email='+ email)
+            .set('content-type', 'application/json')
+            .set('Authorization', 'Bearer ' + testSignUpToken)
+            .end((err, res) => {
+                chai_expect(res.body).to.deep.equal([])
+                chai_expect(res.status).to.equal(200)
+                done();
+            })
+    })
+
+    /**
    * USER ENDPOINT
   **/
   test('POST user to DB', (done) => {
@@ -43,8 +182,10 @@ describe('This is an end to end test for all API calls', () => {
       .set('Authorization', 'Bearer '+token)
       .send(dummy.mockUser)
       .end((err, res) => {
-        chai_expect(err).to.be.null;
+          console.log(err)
+          chai_expect(err).to.be.null;
         chai_expect(res.status).to.equal(201);
+
         done();
       });
   });
@@ -54,7 +195,9 @@ describe('This is an end to end test for all API calls', () => {
       .set('content-type', 'application/json')
       .set('Authorization', 'Bearer '+token)
       .end((err, res) => {
-        chai_expect(err).to.be.null;
+          console.log(err)
+
+          chai_expect(err).to.be.null;
         chai_expect(res.status).to.equal(200);
         done();
       });
@@ -68,27 +211,109 @@ describe('This is an end to end test for all API calls', () => {
       .set('Authorization', 'Bearer '+token)
       .send(mockUser)
       .end((err, res) => {
-        chai_expect(err).to.be.null;
+          console.log(err)
+
+          chai_expect(err).to.be.null;
         chai_expect(res.status).to.equal(400);
         done();
       });
   });
 
-  test('PUT user (does not exist) should get 404', (done) => {
-    chai.request(server).put('/user/1c42b718-83cd-11e8-b158-e0accb890fd7/')
-      .set('content-type', 'application/json')
-      .set('Authorization', 'Bearer '+token)
-      .send(dummy.notExistUser)
-      .end((err, res) => {
-        chai_expect(err).to.be.null;
-        chai_expect(res.status).to.equal(404);
-        done();
-      });
-  });
 
-  /**
-   * POST FARM
-   **/
+    test('PUT user (does not exist) should get 404', (done) => {
+      chai.request(server).put('/user/1c42b718-83cd-11e8-b158-e0accb890fd7/')
+        .set('content-type', 'application/json')
+        .set('Authorization', 'Bearer '+token)
+        .send(dummy.notExistUser)
+        .end((err, res) => {
+          chai_expect(err).to.be.null;
+          chai_expect(res.status).to.equal(404);
+          done();
+        });
+    });
+
+  //ONBOARDING TESTS (add_farm flow)
+    //blank FarmName, Farm Address (default should be metric, currency and sandbox)
+    //expect default units to be metric, default currency to be USD, default Sandbox is deafult false
+    // Ensure Farm Name is blank, Farm Address is blank, Units default to metric, currency to USD, Sandbox default false, "Next" is disabled
+
+    test('POST farm for user 123 to DB - defaults not filled', (done) => {
+        let farm = dummy.testAddFarmDataDefaults
+        chai.request(server).post('/farm')
+            .set('content-type', 'application/json')
+            .set('Authorization', 'Bearer '+token)
+            .set('user_id', dummy.mockUser.user_id)
+            .send(dummy.testAddFarmDataDefaults)
+            .end((err, res) => {
+                // console.log(res)
+                // console.log(err)
+                console.log(res.error)
+                chai_expect(err).to.be.null;
+                chai_expect(res.status).to.equal(201);
+                chai_expect(res.body[0].units.currency).to.equal('CAD');
+                chai_expect(res.body[0].units.measurement).to.equal('metric');
+                chai_expect(res.body[0].units.sandbox_bool).to.equal(false);
+                chai_expect(res.body[0].farm_name).to.equal(farm.farm_name);
+                chai_expect(res.body[0].address).to.equal(farm.address);
+                chai_expect(res.body[0].grid_points).to.equal(farm.grid_points);
+                chai.expect(res.body).to.have.property('farm_id');
+                done();
+            });
+    });
+
+
+    test('GET farm from DB to verify post', (done) => {
+      chai.request(server).get('/farm/' + farm_id)
+        .set('content-type', 'application/json')
+        .set('Authorization', 'Bearer '+token)
+        .end((err, res) => {
+          chai_expect(err).to.be.null;
+          chai_expect(res.status).to.equal(200);
+          done();
+        });
+    });
+
+    // Ensure Farm Name is blank,
+        test('POST farm name blank', (done) => {
+        chai.request(server).post('/farm')
+            .set('content-type', 'application/json')
+            .set('Authorization', 'Bearer '+token)
+            .set('user_id', dummy.mockUser.user_id)
+            .send(dummy.testEmptyFarmName)
+            .end((err, res) => {
+                console.log(err)
+                chai_expect(err).to.be.null;
+                chai_expect(res.status).to.equal(400);
+                done();
+            });
+    });
+
+    // Farm Address is blank
+    test('POST farm address blank', (done) => {
+        chai.request(server).post('/farm')
+            .set('content-type', 'application/json')
+            .set('Authorization', 'Bearer '+token)
+            .set('user_id', dummy.mockUser.user_id)
+            .send(dummy.testFarm)
+            .end((err, res) => {
+                console.log(err)
+                chai_expect(err).to.be.null;
+                chai_expect(res.status).to.equal(400);
+                done();
+            });
+    });
+
+// CONSENT FLOW:
+//    consent version
+
+    //disagree consent
+
+    //agree consent
+
+  //
+  // /**
+  //  * POST FARM
+  //  **/
   test('POST farm to set up tests', (done) => {
     chai.request(server).post('/farm')
       .set('content-type', 'application/json')

@@ -85,8 +85,7 @@ const dummy = {
     'last_name': 'ever',
     'first_name': 'greatest',
     'email': 'haha@gmail.com',
-    'is_admin': false,
-    'user_id': '1c42b718-83cd-11e8-b158-e0accb890fd2',
+    'user_id': "1c42b718-83cd-11e8-b158-e0accb890fd2",
   },
 
   mockUserDuplicateEmail:{
@@ -207,9 +206,22 @@ const dummy = {
     farm_id: null,
   },
 
-  testFarm: {
-    farm_id: '5be5faae-d608-4700-8b05-ae08e9edf747',
+
+  testAddFarmDataDefaults : {
+    "farm_name": "Test Farm",
+    "address": "University Endowment Lands, BC V6T 1W5",
+    "grid_points": {"lat": 49.250842, "long": -123.238891}
   },
+
+  testEmptyFarmName: {
+    address: 'University Endowment Lands, BC V6T 1W5',
+    grid_points: {lat: 49.250842, long: -123.238891},
+    farm_id: '5fccac86-d9db-11ea-b40e-6384feaf1b26'
+  },
+
+    testFarm: {
+      farm_id: '5be5faae-d608-4700-8b05-ae08e9edf747',
+    },
 
   testNitrogenBalance: {
     scheduled_at: new Date(),
