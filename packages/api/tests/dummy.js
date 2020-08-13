@@ -82,10 +82,10 @@ const dummy = {
   },
 
   mockUser:{
-    'last_name': 'ever',
-    'first_name': 'greatest',
-    'email': 'haha@gmail.com',
-    'user_id': "1c42b718-83cd-11e8-b158-e0accb890fd2",
+    last_name: 'ever',
+    first_name: 'greatest',
+    email: 'haha@gmail.com',
+    user_id: '1c42b718-83cd-11e8-b158-e0accb890fd2',
   },
 
   mockUserDuplicateEmail:{
@@ -208,9 +208,9 @@ const dummy = {
 
 
   testAddFarmDataDefaults : {
-    "farm_name": "Test Farm",
-    "address": "University Endowment Lands, BC V6T 1W5",
-    "grid_points": {"lat": 49.250842, "long": -123.238891}
+    farm_name: 'Test Farm',
+    address: 'University Endowment Lands, BC V6T 1W5',
+    grid_points: {'lat': 49.250842, 'long': -123.238891}
   },
 
   testEmptyFarmName: {
