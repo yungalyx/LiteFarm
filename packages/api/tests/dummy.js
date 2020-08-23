@@ -217,6 +217,15 @@ const dummy = {
     farm_id: '5be5faae-d608-4700-8b05-ae08e9edf747',
   },
 
+  mockSensor: {
+    'sensor_id': "718",
+    'field_id': '223',
+    'location':{
+      'lon': 134.5212,
+      'lat': 72.5912,
+    },
+  }
+
 };
 
 module.exports = dummy;
